@@ -1,0 +1,128 @@
+/**
+ * Styles du module administration
+ */
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.admin-stat-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: var(--spacing-lg);
+}
+
+.admin-stat-label {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    margin-bottom: var(--spacing-sm);
+}
+
+.admin-stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-accent);
+}
+
+.users-table {
+    width: 100%;
+}
+
+.user-row {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-base);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-right: var(--spacing-base);
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.user-email {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+}
+
+.user-role {
+    text-align: center;
+    min-width: 100px;
+}
+
+.user-status {
+    text-align: center;
+    min-width: 100px;
+}
+
+.user-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-left: var(--spacing-base);
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-active {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #065F46;
+}
+
+.status-inactive {
+    background-color: rgba(107, 114, 128, 0.1);
+    color: #374151;
+}
+
+.status-suspended {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #7F1D1D;
+}
+
+@media (max-width: 768px) {
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .user-row {
+        flex-wrap: wrap;
+    }
+
+    .user-role,
+    .user-status {
+        width: 50%;
+    }
+
+    .user-actions {
+        width: 100%;
+        margin: var(--spacing-base) 0 0 0;
+    }
+}

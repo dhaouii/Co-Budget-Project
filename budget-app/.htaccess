@@ -1,0 +1,28 @@
+# Redirection HTTP à HTTPS (optionnel en développement)
+# RewriteEngine On
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Désactiver l'affichage des répertoires
+Options -Indexes
+
+# Autoriser les fichiers existants et répertoires
+# Note: mod_rewrite désactivé en développement (activé sur production)
+# RewriteEngine On
+# RewriteCond %{REQUEST_FILENAME} !-f
+# RewriteCond %{REQUEST_FILENAME} !-d
+
+# Rediriger vers index.php si le fichier n'existe pas
+# RewriteRule ^(.*)$ index.php [L,QSA]
+
+# Sécurité : interdire l'accès à certains fichiers
+<FilesMatch "\.(env|sql|md|json)$">
+    Deny from all
+</FilesMatch>
+
+# Sécurité : en-têtes HTTP
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>

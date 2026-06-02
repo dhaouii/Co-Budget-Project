@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    ports:
+      - "8082:80"
+    volumes:
+      - ./budget-app:/var/www/html
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_NAME=budget_db
+      - DB_USER=budget_user
+      - DB_PASS=budget_pass
+    networks:
+      - budget-network
+
+  db:
+    image: mysql:8.0
+    platform: linux/amd64
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: budget_db
+      MYSQL_USER: budget_user
+      MYSQL_PASSWORD: budget_pass
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./budget-app/database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./budget-app/database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    networks:
+      - budget-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    platform: linux/amd64
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: budget_user
+      PMA_PASSWORD: budget_pass
+    depends_on:
+      - db
+    networks:
+      - budget-network
+
+volumes:
+  db_data:
+
+networks:
+  budget-network:
+    driver: bridge

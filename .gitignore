@@ -1,0 +1,45 @@
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Database backups
+*.sql.bak
+*.dump
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# OS
+Thumbs.db
+
+# Docker volumes
+mysql_data/
+docker-data/
+
+# Composer (si tu l'utilises plus tard)
+vendor/
+composer.phar
+
+# Node (si tu l'utilises plus tard)
+node_modules/
+
+# Cache
+*.cache
+.cache/
+
+# Backup files
+*.bak
+*.backup
+
+# Temporary
+tmp/
+temp/
