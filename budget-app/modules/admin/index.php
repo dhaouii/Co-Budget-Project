@@ -35,8 +35,8 @@ try {
     $transStmt = $pdo->query('SELECT COUNT(*) as count FROM transactions');
     $totalTransactions = $transStmt->fetch()['count'] ?? 0;
 
-    // Transactions du jour
-    $todayStmt = $pdo->query('SELECT COUNT(*) as count FROM transactions WHERE DATE(date_transaction) = CURDATE()');
+    // Transactions de ce mois
+    $todayStmt = $pdo->query('SELECT COUNT(*) as count FROM transactions WHERE MONTH(date_transaction) = MONTH(CURDATE()) AND YEAR(date_transaction) = YEAR(CURDATE())');
     $todayTransactions = $todayStmt->fetch()['count'] ?? 0;
 
 } catch (PDOException $e) {
@@ -69,7 +69,7 @@ require_once '../../views/layouts/header.php';
         <div class="admin-stat-label">Transactions</div>
         <div class="admin-stat-value"><?php echo $totalTransactions; ?></div>
         <p style="font-size: 12px; color: var(--color-text-secondary); margin: var(--spacing-sm) 0 0 0;">
-            <?php echo $todayTransactions; ?> aujourd'hui
+            <?php echo $todayTransactions; ?> ce mois-ci
         </p>
     </div>
 </div>

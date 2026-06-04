@@ -54,7 +54,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Récupère les utilisateurs
+// Compte total des utilisateurs par statut (indépendant du filtre)
+try {
+    $totalCount = (int)$pdo->query('SELECT COUNT(*) FROM utilisateurs')->fetchColumn();
+    $inactiveCount = (int)$pdo->query('SELECT COUNT(*) FROM utilisateurs WHERE statut = "inactif"')->fetchColumn();
+    $suspendedCount = (int)$pdo->query('SELECT COUNT(*) FROM utilisateurs WHERE statut = "suspendu"')->fetchColumn();
+} catch (PDOException $e) {
+    $totalCount = $inactiveCount = $suspendedCount = 0;
+}
+
+// Récupère les utilisateurs filtrés
 try {
     $query = 'SELECT * FROM utilisateurs WHERE 1=1';
     $params = [];
@@ -87,19 +96,13 @@ require_once '../../views/layouts/header.php';
     <div class="card" style="margin-bottom: var(--spacing-lg);">
         <div style="display: flex; gap: var(--spacing-base); flex-wrap: wrap;">
             <a href="<?php echo BASE_URL; ?>/modules/admin/users_list.php" class="btn <?php echo !$filter ? 'btn-primary' : 'btn-secondary'; ?>">
-                Tous les utilisateurs (<?php echo count($users); ?>)
+                Tous les utilisateurs (<?php echo $totalCount; ?>)
             </a>
 
-            <?php
-            $inactiveCount = count(array_filter($users, fn($u) => $u['statut'] === 'inactif'));
-            ?>
             <a href="<?php echo BASE_URL; ?>/modules/admin/users_list.php?filter=inactive" class="btn <?php echo $filter === 'inactive' ? 'btn-primary' : 'btn-secondary'; ?>">
                 En attente (<?php echo $inactiveCount; ?>)
             </a>
 
-            <?php
-            $suspendedCount = count(array_filter($users, fn($u) => $u['statut'] === 'suspendu'));
-            ?>
             <a href="<?php echo BASE_URL; ?>/modules/admin/users_list.php?filter=suspended" class="btn <?php echo $filter === 'suspended' ? 'btn-primary' : 'btn-secondary'; ?>">
                 Suspendus (<?php echo $suspendedCount; ?>)
             </a>
@@ -176,10 +179,10 @@ require_once '../../views/layouts/header.php';
 
                                 <!-- Suspendre si actif -->
                                 <?php if ($user['statut'] === 'actif'): ?>
-                                    <form method="POST" style="display: inline;">
+                                    <form method="POST" style="display: inline;" class="suspend-form">
                                         <input type="hidden" name="action" value="suspend">
                                         <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
-                                        <button type="submit" class="btn btn-danger btn-sm" title="Suspendre le compte" onclick="return confirm('Êtes-vous sûr ?')">
+                                        <button type="button" class="btn btn-danger btn-sm" title="Suspendre le compte" onclick="confirmSuspend(this.form)">
                                             <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
                                         </button>
                                     </form>
@@ -194,8 +197,16 @@ require_once '../../views/layouts/header.php';
 </div>
 
 <script>
+    function confirmSuspend(form) {
+        if (typeof confirmDelete === 'function') {
+            confirmDelete('Voulez-vous vraiment suspendre ce compte ?', () => form.submit());
+        } else {
+            if (window.confirm('Voulez-vous vraiment suspendre ce compte ?')) form.submit();
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     });
 </script>
 

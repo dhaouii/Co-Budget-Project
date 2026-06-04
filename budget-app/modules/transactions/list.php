@@ -27,12 +27,21 @@ $filterMonth = sanitize($_GET['month'] ?? '');
 $filterYear = sanitize($_GET['year'] ?? '');
 $filterBudget = sanitize($_GET['budget'] ?? '');
 
-// Construire la requête
-$query = 'SELECT t.*, c.nom as categorie, b.nom as budget_nom FROM transactions t
+// Construire la requête : ses propres transactions + transactions des budgets partagés
+$query = 'SELECT t.*, c.nom as categorie, b.nom as budget_nom, u.prenom as user_prenom, u.nom as user_nom
+          FROM transactions t
           LEFT JOIN categories c ON t.id_categorie = c.id
           LEFT JOIN budgets b ON t.id_budget = b.id
-          WHERE t.id_utilisateur = ?';
-$params = [$userId];
+          LEFT JOIN utilisateurs u ON t.id_utilisateur = u.id
+          WHERE (
+              t.id_utilisateur = ?
+              OR t.id_budget IN (
+                  SELECT id FROM budgets WHERE id_createur = ?
+                  UNION
+                  SELECT id_budget FROM budget_membres WHERE id_utilisateur = ?
+              )
+          )';
+$params = [$userId, $userId, $userId];
 
 // Filtre par type
 if ($filterType && in_array($filterType, ['revenu', 'depense'])) {
@@ -76,9 +85,14 @@ try {
     $catStmt->execute([$userId]);
     $categories = $catStmt->fetchAll();
 
-    // Récupère les budgets/projets pour le filtre
-    $budStmt = $pdo->prepare('SELECT id, nom FROM budgets WHERE id_createur = ? ORDER BY nom');
-    $budStmt->execute([$userId]);
+    // Récupère les budgets/projets pour le filtre (propres + partagés)
+    $budStmt = $pdo->prepare(
+        'SELECT DISTINCT b.id, b.nom FROM budgets b
+         LEFT JOIN budget_membres bm ON bm.id_budget = b.id
+         WHERE b.id_createur = ? OR bm.id_utilisateur = ?
+         ORDER BY b.nom'
+    );
+    $budStmt->execute([$userId, $userId]);
     $budgets = $budStmt->fetchAll();
 } catch (PDOException $e) {
     $error = 'Erreur lors du chargement des transactions.';
@@ -100,7 +114,7 @@ require_once '../../views/layouts/header.php';
 
     <?php if ($success): ?>
         <div class="alert alert-success">
-            ✅ Transaction ajoutée avec succès !
+            Transaction ajoutée avec succès !
         </div>
     <?php endif; ?>
 
@@ -182,7 +196,7 @@ require_once '../../views/layouts/header.php';
 <!-- Liste des transactions -->
 <div class="card">
     <div style="padding: var(--spacing-base); margin-bottom: var(--spacing-lg); background-color: var(--color-bg); border-radius: var(--radius); font-size: 14px; color: var(--color-text-secondary);">
-        📊 Total: <strong><?php echo count($transactions); ?> transaction(s)</strong>
+        Total: <strong><?php echo count($transactions); ?> transaction(s)</strong>
     </div>
 
     <?php if (empty($transactions)): ?>

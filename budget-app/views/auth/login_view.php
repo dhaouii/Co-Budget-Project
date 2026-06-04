@@ -17,8 +17,8 @@
             --color-border: #E5E7EB;
             --color-text-primary: #1C1C1E;
             --color-text-secondary: #6B7280;
-            --color-accent: #2DD4BF;
-            --color-accent-dark: #0F9B8E;
+            --color-accent: #3B82F6;
+            --color-accent-dark: #1E40AF;
             --color-danger: #EF4444;
         }
 
@@ -223,7 +223,7 @@
                     text-decoration: none;
                     transition: all 0.2s;
                 " onmouseover="this.style.background='rgba(45, 212, 191, 0.2)'" onmouseout="this.style.background='rgba(45, 212, 191, 0.1)'">
-                    👁️ Continuer en tant que visiteur
+                    Continuer en tant que visiteur
                 </a>
             </div>
         </div>

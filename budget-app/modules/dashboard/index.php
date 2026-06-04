@@ -37,24 +37,37 @@ if ($filterBudget) {
     $dateParams[] = $filterBudget;
 }
 
-// Récupère les budgets pour le filtre
+// Récupère les budgets pour le filtre (propres + partagés)
 try {
-    $budgetsListStmt = $pdo->prepare('SELECT id, nom FROM budgets WHERE id_createur = ? ORDER BY nom');
-    $budgetsListStmt->execute([$userId]);
+    $budgetsListStmt = $pdo->prepare(
+        'SELECT DISTINCT b.id, b.nom FROM budgets b
+         LEFT JOIN budget_membres bm ON bm.id_budget = b.id
+         WHERE b.id_createur = ? OR bm.id_utilisateur = ?
+         ORDER BY b.nom'
+    );
+    $budgetsListStmt->execute([$userId, $userId]);
     $userBudgets = $budgetsListStmt->fetchAll();
 } catch (PDOException $e) {
     $userBudgets = [];
 }
 
+// Condition pour inclure transactions partagées
+$sharedCondition = ' (id_utilisateur = ? OR id_budget IN (
+    SELECT id FROM budgets WHERE id_createur = ?
+    UNION
+    SELECT id_budget FROM budget_membres WHERE id_utilisateur = ?
+))';
+$sharedParams = [$userId, $userId, $userId];
+
 try {
     // Total revenus
-    $incomeStmt = $pdo->prepare('SELECT SUM(montant) as total FROM transactions WHERE id_utilisateur = ? AND type = "revenu"' . $dateConditions);
-    $incomeStmt->execute(array_merge([$userId], $dateParams));
+    $incomeStmt = $pdo->prepare('SELECT SUM(montant) as total FROM transactions WHERE ' . $sharedCondition . ' AND type = "revenu"' . $dateConditions);
+    $incomeStmt->execute(array_merge($sharedParams, $dateParams));
     $totalIncome = $incomeStmt->fetch()['total'] ?? 0;
 
     // Total dépenses
-    $expenseStmt = $pdo->prepare('SELECT SUM(montant) as total FROM transactions WHERE id_utilisateur = ? AND type = "depense"' . $dateConditions);
-    $expenseStmt->execute(array_merge([$userId], $dateParams));
+    $expenseStmt = $pdo->prepare('SELECT SUM(montant) as total FROM transactions WHERE ' . $sharedCondition . ' AND type = "depense"' . $dateConditions);
+    $expenseStmt->execute(array_merge($sharedParams, $dateParams));
     $totalExpense = $expenseStmt->fetch()['total'] ?? 0;
 
     // Solde
@@ -69,15 +82,24 @@ try {
     $budgetStmt->execute([$userId, $userId]);
     $budgetCount = $budgetStmt->fetch()['count'] ?? 0;
 
-    // 5 dernières transactions
+    // 5 dernières transactions (incluant transactions des budgets partagés)
     $transStmt = $pdo->prepare(
-        'SELECT t.*, c.nom as categorie FROM transactions t
+        'SELECT t.*, c.nom as categorie, u.prenom as user_prenom
+         FROM transactions t
          LEFT JOIN categories c ON t.id_categorie = c.id
-         WHERE t.id_utilisateur = ?
+         LEFT JOIN utilisateurs u ON t.id_utilisateur = u.id
+         WHERE (
+             t.id_utilisateur = ?
+             OR t.id_budget IN (
+                 SELECT id FROM budgets WHERE id_createur = ?
+                 UNION
+                 SELECT id_budget FROM budget_membres WHERE id_utilisateur = ?
+             )
+         )
          ORDER BY t.date_transaction DESC
          LIMIT 5'
     );
-    $transStmt->execute([$userId]);
+    $transStmt->execute([$userId, $userId, $userId]);
     $recentTransactions = $transStmt->fetchAll();
 } catch (PDOException $e) {
     error_log('Database error: ' . $e->getMessage());
@@ -102,7 +124,7 @@ require_once '../../views/layouts/header.php';
         align-items: center;
         gap: 16px;
     ">
-        <span style="font-size: 24px;">👁️</span>
+        <i data-lucide="eye" style="width: 24px; height: 24px; color: #92400E;"></i>
         <div style="flex: 1;">
             <strong style="color: #92400E; display: block; margin-bottom: 4px;">Mode Visiteur - Lecture seule</strong>
             <p style="margin: 0; color: #78350F; font-size: 14px;">
@@ -175,6 +197,7 @@ require_once '../../views/layouts/header.php';
     $icon = 'wallet';
     $variation = 0;
     $subtitle = 'Disponible';
+    $hideCurrency = false;
     require '../../views/partials/stat_card.php';
     ?>
 
@@ -184,7 +207,8 @@ require_once '../../views/layouts/header.php';
     $icon = 'arrow-down-left';
     $variation = 0;
     $currency = 'TND';
-    $subtitle = 'Ce mois-ci';
+    $subtitle = '';
+    $hideCurrency = false;
     require '../../views/partials/stat_card.php';
     ?>
 
@@ -193,7 +217,8 @@ require_once '../../views/layouts/header.php';
     $value = formatNumber($totalExpense);
     $icon = 'arrow-up-right';
     $variation = 0;
-    $subtitle = 'Ce mois-ci';
+    $subtitle = '';
+    $hideCurrency = false;
     require '../../views/partials/stat_card.php';
     ?>
 
@@ -202,23 +227,34 @@ require_once '../../views/layouts/header.php';
     $value = $budgetCount;
     $icon = 'target';
     $variation = 0;
+    $hideCurrency = true;
+    $subtitle = '';
     require '../../views/partials/stat_card.php';
     ?>
 </div>
 
 <!-- Graphiques -->
-<div class="dashboard-charts" id="chartsContainer">
-    <!-- Graphique circulaire -->
+<div class="dashboard-charts" id="chartsContainer"
+     data-year="<?php echo $filterYear ?? ''; ?>"
+     data-month="<?php echo $filterMonth ?? ''; ?>"
+     data-budget="<?php echo $filterBudget ?? ''; ?>">
+    <!-- Donut Dépenses -->
     <div class="chart-container">
-        <div class="chart-title">Répartition par catégorie</div>
+        <div class="chart-title">Dépenses par catégorie</div>
         <canvas id="pieChartContainer" style="height: 100%;"></canvas>
     </div>
 
-    <!-- Graphique linéaire -->
+    <!-- Donut Revenus -->
     <div class="chart-container">
-        <div class="chart-title">Évolution mensuelle</div>
-        <canvas id="lineChartContainer" style="height: 100%;"></canvas>
+        <div class="chart-title">Revenus par catégorie</div>
+        <canvas id="incomeChartContainer" style="height: 100%;"></canvas>
     </div>
+</div>
+
+<!-- Graphique Évolution mensuelle (pleine largeur) -->
+<div class="chart-container" style="margin-top: var(--spacing-lg);">
+    <div class="chart-title">Évolution mensuelle</div>
+    <canvas id="lineChartContainer" style="height: 100%;"></canvas>
 </div>
 
 <!-- Dernières transactions -->

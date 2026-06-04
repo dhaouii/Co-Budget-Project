@@ -83,11 +83,11 @@ $description = $transaction['description'] ?? '';
         <td style="padding: var(--spacing-base); text-align: right;">
             <div style="display: flex; gap: var(--spacing-sm); justify-content: flex-end;">
                 <a href="<?php echo BASE_URL; ?>/modules/transactions/edit.php?id=<?php echo $transaction['id']; ?>" class="btn btn-secondary btn-sm" title="Modifier" style="display: inline-flex; align-items: center; gap: 6px;">
-                    ✏️ Modifier
+                    <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i> Modifier
                 </a>
-                <a href="<?php echo BASE_URL; ?>/modules/transactions/delete.php?id=<?php echo $transaction['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirmDeleteAndNavigate(this, 'Êtes-vous sûr de vouloir supprimer cette transaction ?');" title="Supprimer" style="display: inline-flex; align-items: center; gap: 6px;">
-                    🗑️ Supprimer
-                </a>
+                <button type="button" class="btn btn-danger btn-sm js-delete-btn" data-url="<?php echo BASE_URL; ?>/modules/transactions/delete.php?id=<?php echo $transaction['id']; ?>" data-message="Êtes-vous sûr de vouloir supprimer cette transaction ?" title="Supprimer" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Supprimer
+                </button>
             </div>
         </td>
     <?php endif; ?>

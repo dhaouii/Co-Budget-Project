@@ -9,7 +9,26 @@ const API_URL = '/modules/dashboard/stats_api.php';
 // Charge les données et initialise les graphiques
 async function initializeDashboard() {
     try {
-        const response = await fetch(API_URL);
+        // Récupère les filtres depuis le conteneur
+        const container = document.getElementById('chartsContainer');
+        const params = new URLSearchParams();
+        if (container) {
+            const year = container.getAttribute('data-year');
+            const month = container.getAttribute('data-month');
+            const budget = container.getAttribute('data-budget');
+            if (year) params.append('year', year);
+            if (month) params.append('month', month);
+            if (budget) params.append('budget', budget);
+        }
+
+        // Cache buster pour éviter le cache du navigateur
+        params.append('_t', Date.now());
+
+        const url = API_URL + '?' + params.toString();
+        const response = await fetch(url, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache' }
+        });
         if (!response.ok) throw new Error('Erreur lors du chargement des données');
 
         const data = await response.json();
@@ -17,13 +36,23 @@ async function initializeDashboard() {
         // Affiche les cartes statistiques
         updateStatCards(data);
 
-        // Initialise les graphiques
+        // Initialise les graphiques (ou affiche message si vide)
         if (data.categories && data.categories.length > 0) {
             renderPieChart(data.categories);
+        } else {
+            showEmptyChart('pieChartContainer', 'Aucune dépense pour cette période');
+        }
+
+        if (data.income_categories && data.income_categories.length > 0) {
+            renderIncomeChart(data.income_categories);
+        } else {
+            showEmptyChart('incomeChartContainer', 'Aucun revenu pour cette période');
         }
 
         if (data.evolution && data.evolution.length > 0) {
             renderLineChart(data.evolution);
+        } else {
+            showEmptyChart('lineChartContainer', 'Aucune donnée pour cette période');
         }
     } catch (error) {
         console.error('Error:', error);
@@ -37,10 +66,47 @@ function updateStatCards(data) {
     // Sinon, elles sont statiques en HTML
 }
 
+// Plugin pour afficher le texte au centre du donut
+const centerTextPlugin = {
+    id: 'centerText',
+    afterDraw: function(chart) {
+        if (chart.config.options.centerText) {
+            const { ctx, chartArea: { left, right, top, bottom } } = chart;
+            const centerX = (left + right) / 2;
+            const centerY = (top + bottom) / 2;
+            const text = chart.config.options.centerText.text;
+            const subText = chart.config.options.centerText.subText;
+            const color = chart.config.options.centerText.color || '#1D1D1F';
+
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Texte principal
+            ctx.font = 'bold 20px Inter, sans-serif';
+            ctx.fillStyle = color;
+            ctx.fillText(text, centerX, centerY - 8);
+
+            // Sous-texte (montant total)
+            if (subText) {
+                ctx.font = '13px Inter, sans-serif';
+                ctx.fillStyle = '#6B7280';
+                ctx.fillText(subText, centerX, centerY + 14);
+            }
+
+            ctx.restore();
+        }
+    }
+};
+
 // Graphique en camembert - Répartition par catégorie
 function renderPieChart(categories) {
     const chartContainer = document.getElementById('pieChartContainer');
     if (!chartContainer) return;
+
+    // Détruit l'instance existante pour éviter les conflits
+    const existingChart = Chart.getChart(chartContainer);
+    if (existingChart) existingChart.destroy();
 
     const ctx = chartContainer.getContext('2d');
     if (!ctx) {
@@ -48,11 +114,11 @@ function renderPieChart(categories) {
         return;
     }
 
-    // Couleurs personnalisées
-    const colors = [
-        '#2DD4BF', '#0F9B8E', '#1B6B5D', '#F59E0B', '#EF4444',
-        '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#F97316'
-    ];
+    // Calcule le total des dépenses
+    const total = categories.reduce((sum, c) => sum + c.value, 0);
+
+    // Utilise les couleurs des catégories
+    const colors = categories.map(c => c.color || '#9CA3AF');
 
     new Chart(ctx, {
         type: 'doughnut',
@@ -68,26 +134,95 @@ function renderPieChart(categories) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '75%',
             layout: {
-                padding: {
-                    bottom: 10
-                }
+                padding: 10
+            },
+            centerText: {
+                text: 'Dépenses',
+                subText: total.toLocaleString('fr-FR') + ' TND',
+                color: '#EF4444'
             },
             plugins: {
                 legend: {
                     position: 'bottom',
+                    maxHeight: 50,
                     labels: {
                         font: {
                             family: "'Inter', sans-serif",
-                            size: 12
+                            size: 11
                         },
-                        padding: 12,
+                        padding: 8,
                         color: '#6B7280',
-                        boxWidth: 12
+                        boxWidth: 10,
+                        boxHeight: 10
                     }
                 }
             }
-        }
+        },
+        plugins: [centerTextPlugin]
+    });
+}
+
+// Graphique en camembert - Revenus par catégorie
+function renderIncomeChart(categories) {
+    const chartContainer = document.getElementById('incomeChartContainer');
+    if (!chartContainer) return;
+
+    // Détruit l'instance existante pour éviter les conflits
+    const existingChart = Chart.getChart(chartContainer);
+    if (existingChart) existingChart.destroy();
+
+    const ctx = chartContainer.getContext('2d');
+    if (!ctx) return;
+
+    // Calcule le total des revenus
+    const total = categories.reduce((sum, c) => sum + c.value, 0);
+
+    // Utilise les couleurs des catégories
+    const colors = categories.map(c => c.color || '#9CA3AF');
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: categories.map(c => c.label),
+            datasets: [{
+                data: categories.map(c => c.value),
+                backgroundColor: colors,
+                borderColor: '#FFFFFF',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '75%',
+            layout: {
+                padding: 10
+            },
+            centerText: {
+                text: 'Revenus',
+                subText: total.toLocaleString('fr-FR') + ' TND',
+                color: '#10B981'
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    maxHeight: 50,
+                    labels: {
+                        font: {
+                            family: "'Inter', sans-serif",
+                            size: 11
+                        },
+                        padding: 8,
+                        color: '#6B7280',
+                        boxWidth: 10,
+                        boxHeight: 10
+                    }
+                }
+            }
+        },
+        plugins: [centerTextPlugin]
     });
 }
 
@@ -95,6 +230,10 @@ function renderPieChart(categories) {
 function renderLineChart(evolution) {
     const chartContainer = document.getElementById('lineChartContainer');
     if (!chartContainer) return;
+
+    // Détruit l'instance existante pour éviter les conflits
+    const existingChart = Chart.getChart(chartContainer);
+    if (existingChart) existingChart.destroy();
 
     const ctx = chartContainer.getContext('2d');
     if (!ctx) {
@@ -113,22 +252,22 @@ function renderLineChart(evolution) {
                 {
                     label: 'Revenus',
                     data: dataToUse.map(e => e.income),
-                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
-                    borderColor: '#10B981',
-                    borderWidth: 1,
-                    borderRadius: 6,
-                    barPercentage: 0.7,
-                    categoryPercentage: 0.6
+                    backgroundColor: '#4338CA',
+                    borderColor: '#4338CA',
+                    borderWidth: 0,
+                    borderRadius: 12,
+                    barPercentage: 0.55,
+                    categoryPercentage: 0.65
                 },
                 {
                     label: 'Dépenses',
                     data: dataToUse.map(e => e.expense),
-                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                    borderColor: '#EF4444',
-                    borderWidth: 1,
-                    borderRadius: 6,
-                    barPercentage: 0.7,
-                    categoryPercentage: 0.6
+                    backgroundColor: '#FF8A8A',
+                    borderColor: '#FF8A8A',
+                    borderWidth: 0,
+                    borderRadius: 12,
+                    barPercentage: 0.55,
+                    categoryPercentage: 0.65
                 }
             ]
         },
@@ -209,6 +348,25 @@ function showErrorMessage(message) {
     if (container) {
         container.innerHTML = `<div class="alert alert-danger">${message}</div>`;
     }
+}
+
+// Affiche un message vide pour un canvas
+function showEmptyChart(canvasId, message) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    // Détruit l'ancien chart si existant
+    const existingChart = Chart.getChart(canvas);
+    if (existingChart) existingChart.destroy();
+
+    // Affiche le message dans le canvas
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#9CA3AF';
+    ctx.font = '14px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(message, canvas.width / 2, canvas.height / 2);
 }
 
 // Initialise au chargement du DOM

@@ -89,11 +89,11 @@ require_once '../../views/layouts/header.php';
                     <?php if ($isOwner && !isGuest()): ?>
                         <div style="display: flex; gap: var(--spacing-sm);">
                             <a href="<?php echo BASE_URL; ?>/modules/budgets/edit.php?id=<?php echo $budget['id']; ?>" class="btn btn-secondary btn-sm" title="Modifier" style="display: inline-flex; align-items: center; gap: 6px;">
-                                ✏️ Modifier
+                                <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i> Modifier
                             </a>
-                            <a href="<?php echo BASE_URL; ?>/modules/budgets/delete.php?id=<?php echo $budget['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirmDeleteAndNavigate(this, 'Êtes-vous sûr de vouloir supprimer ce budget ?');" title="Supprimer" style="display: inline-flex; align-items: center; gap: 6px;">
-                                🗑️ Supprimer
-                            </a>
+                            <button type="button" class="btn btn-danger btn-sm js-delete-btn" data-url="<?php echo BASE_URL; ?>/modules/budgets/delete.php?id=<?php echo $budget['id']; ?>" data-message="Êtes-vous sûr de vouloir supprimer ce budget ?" title="Supprimer" style="display: inline-flex; align-items: center; gap: 6px;">
+                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Supprimer
+                            </button>
                         </div>
                     <?php endif; ?>
                 </div>

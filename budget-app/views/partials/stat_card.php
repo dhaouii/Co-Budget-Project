@@ -1,8 +1,7 @@
 <?php
 /**
- * Composant carte statistique réutilisable
- * Affiche : icône, label, valeur, variation en %
- * Paramètres : $label, $value, $icon, $variation, $currency
+ * Stat Card - Premium Fintech Design
+ * Cards modernes avec icônes, gradient pour le solde
  */
 
 if (!isset($label) || !isset($value)) return;
@@ -11,117 +10,120 @@ $icon = $icon ?? 'activity';
 $variation = $variation ?? 0;
 $currency = $currency ?? 'TND';
 $subtitle = $subtitle ?? '';
-$variationClass = $variation >= 0 ? 'text-success' : 'text-danger';
-$variationIcon = $variation >= 0 ? 'arrow-up' : 'arrow-down';
+$hideCurrency = $hideCurrency ?? false;
 
-// Déterminer la couleur selon le label
-$colorMap = [
+// Couleurs selon le label
+$styles = [
+    'Solde' => [
+        'is_gradient' => true,
+        'bg' => 'linear-gradient(135deg, #4338CA 0%, #4F46E5 100%)',
+        'text' => '#FFFFFF',
+        'subtext' => 'rgba(255, 255, 255, 0.7)',
+        'icon_bg' => 'rgba(255, 255, 255, 0.2)',
+        'icon_color' => '#FFFFFF',
+        'shadow' => '0 8px 24px rgba(67, 56, 202, 0.25)'
+    ],
     'Revenus' => [
-        'bg' => '#F0FDF4',
-        'border' => '#DCFCE7',
-        'icon_bg' => '#DCFCE7',
-        'icon_color' => '#15803D',
-        'text_color' => '#15803D'
+        'is_gradient' => false,
+        'bg' => '#FFFFFF',
+        'text' => '#111827',
+        'subtext' => '#6B7280',
+        'icon_bg' => '#D1FAE5',
+        'icon_color' => '#10B981',
+        'shadow' => '0 1px 3px rgba(17, 24, 39, 0.06)'
     ],
     'Dépenses' => [
-        'bg' => '#FEF2F2',
-        'border' => '#FEE2E2',
+        'is_gradient' => false,
+        'bg' => '#FFFFFF',
+        'text' => '#111827',
+        'subtext' => '#6B7280',
         'icon_bg' => '#FEE2E2',
-        'icon_color' => '#991B1B',
-        'text_color' => '#991B1B'
-    ],
-    'Solde' => [
-        'bg' => '#EFF6FF',
-        'border' => '#DBEAFE',
-        'icon_bg' => '#DBEAFE',
-        'icon_color' => '#1E40AF',
-        'text_color' => '#1E40AF'
+        'icon_color' => '#EF4444',
+        'shadow' => '0 1px 3px rgba(17, 24, 39, 0.06)'
     ],
     'Budgets actifs' => [
-        'bg' => '#FAF5FF',
-        'border' => '#F3E8FF',
-        'icon_bg' => '#F3E8FF',
-        'icon_color' => '#6B21A8',
-        'text_color' => '#6B21A8'
+        'is_gradient' => false,
+        'bg' => '#FFFFFF',
+        'text' => '#111827',
+        'subtext' => '#6B7280',
+        'icon_bg' => '#FEF3C7',
+        'icon_color' => '#F59E0B',
+        'shadow' => '0 1px 3px rgba(17, 24, 39, 0.06)'
     ]
 ];
 
-$colors = $colorMap[$label] ?? [
-    'bg' => '#F5F5F7',
-    'border' => '#E5E7EB',
-    'icon_bg' => '#E5E7EB',
-    'icon_color' => '#0066FF',
-    'text_color' => '#0066FF'
+$style = $styles[$label] ?? [
+    'is_gradient' => false,
+    'bg' => '#FFFFFF',
+    'text' => '#111827',
+    'subtext' => '#6B7280',
+    'icon_bg' => '#EEF2FF',
+    'icon_color' => '#4338CA',
+    'shadow' => '0 1px 3px rgba(17, 24, 39, 0.06)'
 ];
 ?>
 
-<div class="card" style="
-    padding: var(--spacing-lg);
-    background-color: <?php echo $colors['bg']; ?>;
-    border-color: <?php echo $colors['border']; ?>;
-">
-    <div style="
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: var(--spacing-base);
-    ">
-        <div style="flex: 1;">
-            <p style="
-                font-size: 14px;
-                color: var(--color-text-secondary);
-                margin-bottom: var(--spacing-sm);
-            ">
-                <?php echo htmlspecialchars($label); ?>
-            </p>
-            <h3 style="
-                font-size: 28px;
-                font-weight: 700;
-                color: var(--color-text-primary);
-                margin: 0 0 var(--spacing-sm) 0;
-            ">
-                <?php echo htmlspecialchars($value); ?> <?php echo isset($currency) && $currency !== 'TND' ? $currency : 'TND'; ?>
-            </h3>
-            <?php if ($subtitle): ?>
-                <p style="
-                    font-size: 12px;
-                    color: var(--color-text-tertiary);
-                    margin: 0;
-                ">
-                    <?php echo htmlspecialchars($subtitle); ?>
-                </p>
-            <?php endif; ?>
-        </div>
+<div style="
+    padding: 24px;
+    <?php echo $style['is_gradient'] ? 'background: ' . $style['bg'] : 'background-color: ' . $style['bg']; ?>;
+    border: 1px solid <?php echo $style['is_gradient'] ? 'transparent' : 'var(--color-border-light)'; ?>;
+    border-radius: 20px;
+    box-shadow: <?php echo $style['shadow']; ?>;
+    transition: all 200ms ease;
+    cursor: default;
+" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='<?php echo $style['is_gradient'] ? '0 16px 36px rgba(67, 56, 202, 0.3)' : '0 8px 24px rgba(17, 24, 39, 0.08)'; ?>'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='<?php echo $style['shadow']; ?>'">
 
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
         <div style="
-            width: 48px;
-            height: 48px;
-            border-radius: 8px;
-            background-color: <?php echo $colors['icon_bg']; ?>;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background-color: <?php echo $style['icon_bg']; ?>;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: <?php echo $colors['icon_color']; ?>;
+            color: <?php echo $style['icon_color']; ?>;
         ">
-            <i data-lucide="<?php echo $icon; ?>" style="width: 24px; height: 24px;"></i>
+            <i data-lucide="<?php echo $icon; ?>" style="width: 22px; height: 22px;"></i>
         </div>
     </div>
 
-    <?php if ($variation !== 0): ?>
-        <div style="
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
+    <div>
+        <p style="
             font-size: 13px;
-        " class="<?php echo $variationClass; ?>">
-            <i data-lucide="<?php echo $variationIcon; ?>" style="width: 14px; height: 14px;"></i>
-            <span><?php echo abs($variation); ?>% depuis le mois dernier</span>
-        </div>
-    <?php endif; ?>
+            color: <?php echo $style['subtext']; ?>;
+            margin: 0 0 8px 0;
+            font-weight: 500;
+        ">
+            <?php echo htmlspecialchars($label); ?>
+        </p>
+        <h3 style="
+            font-size: 26px;
+            font-weight: 800;
+            color: <?php echo $style['text']; ?>;
+            margin: 0;
+            letter-spacing: -0.5px;
+        ">
+            <?php echo htmlspecialchars($value); ?>
+            <?php if (!$hideCurrency): ?>
+                <span style="font-size: 16px; font-weight: 600; opacity: 0.7;">TND</span>
+            <?php endif; ?>
+        </h3>
+        <?php if ($subtitle): ?>
+            <p style="
+                font-size: 12px;
+                color: <?php echo $style['subtext']; ?>;
+                margin: 8px 0 0 0;
+                font-weight: 500;
+            ">
+                <?php echo htmlspecialchars($subtitle); ?>
+            </p>
+        <?php endif; ?>
+    </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     });
 </script>

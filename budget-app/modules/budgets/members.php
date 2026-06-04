@@ -188,7 +188,7 @@ require_once '../../views/layouts/header.php';
                             <form method="POST" style="margin: 0;">
                                 <input type="hidden" name="action" value="remove">
                                 <input type="hidden" name="member_id" value="<?php echo $member['id']; ?>">
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer ce membre ?')">
+                                <button type="button" class="btn btn-danger btn-sm" onclick="if(typeof confirmDelete==='function'){confirmDelete('Voulez-vous vraiment retirer ce membre ?', () => this.form.submit())} else if(window.confirm('Voulez-vous vraiment retirer ce membre ?')) this.form.submit()">
                                     <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                                 </button>
                             </form>
