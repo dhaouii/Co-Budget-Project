@@ -155,7 +155,7 @@ require_once '../../views/layouts/header.php';
 
         <div class="form-group">
             <label for="email">Email du membre</label>
-            <input type="email" id="email" name="email" placeholder="membre@example.com" required>
+            <input type="email" id="email" name="email" placeholder="email du membre" required>
         </div>
 
         <button type="submit" class="btn btn-primary">Ajouter le membre</button>

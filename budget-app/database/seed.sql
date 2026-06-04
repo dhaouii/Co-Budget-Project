@@ -23,7 +23,7 @@ INSERT INTO categories (nom, icone, couleur, est_defaut, id_utilisateur) VALUES
 ('Logement', 'home', '#EF4444', TRUE, NULL),
 ('Santé', 'heart', '#10B981', TRUE, NULL);
 
--- Insérer 1 budget pour Jean Dupont
+-- Insérer 1 budget exemple
 INSERT INTO budgets (nom, montant_limite, devise, periode, date_debut, date_fin, est_partage, id_createur) VALUES
 ('Budget juin 2025', 2000.00, 'TND', 'mensuel', '2025-06-01', '2025-06-30', FALSE, 1);
 

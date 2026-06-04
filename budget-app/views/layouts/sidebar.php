@@ -63,30 +63,55 @@ function isActive($paths, $currentPath) {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
-        padding: 12px;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        gap: 12px;
+        padding: 20px 16px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     ">
-        <img src="<?php echo BASE_URL; ?>/assets/images/logo.png" alt="Co Budget" style="
-            width: 160px;
-            height: auto;
-            max-height: 110px;
-            object-fit: contain;
-        " onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <!-- Logo SVG inline - grand -->
+        <svg width="110" height="110" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+                    <stop offset="50%" style="stop-color:#8B5CF6;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#A78BFA;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <!-- Cerveau / Arbre stylisé -->
+            <g fill="url(#grad1)" stroke="url(#grad1)" stroke-width="1.5">
+                <!-- Tronc -->
+                <rect x="27" y="42" width="6" height="12" rx="2"/>
+                <!-- Branches en cercles -->
+                <circle cx="30" cy="20" r="5"/>
+                <circle cx="20" cy="25" r="4"/>
+                <circle cx="40" cy="25" r="4"/>
+                <circle cx="18" cy="35" r="4"/>
+                <circle cx="42" cy="35" r="4"/>
+                <circle cx="25" cy="42" r="3"/>
+                <circle cx="35" cy="42" r="3"/>
+                <!-- Connexions -->
+                <line x1="30" y1="20" x2="20" y2="25" stroke-width="2"/>
+                <line x1="30" y1="20" x2="40" y2="25" stroke-width="2"/>
+                <line x1="20" y1="25" x2="18" y2="35" stroke-width="2"/>
+                <line x1="40" y1="25" x2="42" y2="35" stroke-width="2"/>
+                <line x1="18" y1="35" x2="25" y2="42" stroke-width="2"/>
+                <line x1="42" y1="35" x2="35" y2="42" stroke-width="2"/>
+            </g>
+        </svg>
+
+        <!-- Texte Co Budget -->
         <div style="
-            display: none;
-            width: 40px;
-            height: 40px;
-            background: #4338CA;
-            border-radius: 12px;
-            align-items: center;
-            justify-content: center;
-            color: white;
+            font-size: 26px;
             font-weight: 800;
-            font-size: 18px;
-        ">Co</div>
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.8px;
+        ">
+            Co Budget
+        </div>
     </div>
 
     <!-- Balance Card -->

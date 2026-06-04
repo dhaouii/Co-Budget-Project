@@ -90,7 +90,7 @@
         <form method="POST">
             <div class="form-group">
                 <label for="email">Adresse email</label>
-                <input type="email" id="email" name="email" placeholder="vous@exemple.com" required autofocus>
+                <input type="email" id="email" name="email" placeholder="votre@email.com" required autofocus>
             </div>
 
             <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">
